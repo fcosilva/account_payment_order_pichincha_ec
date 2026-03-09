@@ -8,6 +8,7 @@ Módulo para Odoo 17 que agrega exportación de órdenes de pago en formato Banc
 - Permite generar archivo de pago desde la orden (`Generar archivo de pago`).
 - Exporta cada pago con el formato solicitado por Banco Pichincha.
 - Completa automáticamente la cuenta bancaria beneficiaria desde el partner cuando falta en la línea.
+- Permite definir el tipo de cuenta de transferencia por cada banco del partner (`AHO/CTE/VIR`).
 
 ## Formato exportado
 
@@ -35,6 +36,7 @@ Reglas:
 - Valor: sin punto decimal, en centavos (`20.30` => `2030`).
 - `numero de cuenta`: se usa la cuenta bancaria del proveedor/beneficiario (`res.partner.bank`).
 - `descripcion`: se toma de la cabecera de la orden de pago (`description`).
+- `referencia`: prioriza la comunicación de las líneas de pago vinculadas al pago.
 
 ## Mapeos
 
@@ -50,6 +52,12 @@ Reglas:
 - `CTE` = Corriente
 - `VIR` = Virtual
 
+Prioridad de obtención del tipo de cuenta al exportar:
+
+1. Campo `Tipo de Cuenta Transferencia` en la cuenta bancaria del partner.
+2. `acc_type` de la cuenta bancaria (si está disponible).
+3. Tipo por defecto del modo de pago Pichincha.
+
 ## Configuración
 
 En **Modo de pago** (`account.payment.mode`), para método `ec_pichincha_tab`:
@@ -59,6 +67,17 @@ En **Modo de pago** (`account.payment.mode`), para método `ec_pichincha_tab`:
 - Forma de pago (`CTA`) editable.
 - Tipo de cuenta por defecto (`AHO/CTE/VIR`).
 - Opción para incluir encabezado en el archivo.
+
+## Comunicación en línea de pago
+
+Para líneas de pago provenientes de facturas, el campo `comunicación` se completa con esta prioridad:
+
+1. `l10n_latam_document_number`
+2. `name`
+3. `ref`
+4. `payment_reference`
+
+Esto aplica al crear líneas y también al confirmar la orden (si está en borrador).
 
 ## Dependencias
 

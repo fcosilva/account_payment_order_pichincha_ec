@@ -12,8 +12,8 @@
     "data": [
         "data/account_payment_method_data.xml",
         "views/account_payment_mode_views.xml",
+        "views/res_partner_bank_views.xml",
     ],
     "installable": True,
     "application": False,
 }
-

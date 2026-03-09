@@ -34,6 +34,10 @@ class AccountPaymentOrder(models.Model):
         return "P"
 
     def _pichincha_account_type(self, partner_bank, payment_mode):
+        if partner_bank.transfer_account_type:
+            return partner_bank.transfer_account_type
+        if partner_bank.pichincha_account_type:
+            return partner_bank.pichincha_account_type
         acc_type = (partner_bank.acc_type or "").lower()
         if acc_type in {"current", "checking", "corriente"}:
             return "CTE"
@@ -58,12 +62,24 @@ class AccountPaymentOrder(models.Model):
     def draft2open(self):
         # account_payment_order requires partner_bank_id on each payment line.
         # For Pichincha mode, auto-fill it from the beneficiary main bank account.
-        for order in self.filtered(lambda o: o.payment_method_id.code == "ec_pichincha_tab"):
-            for line in order.payment_line_ids.filtered(lambda l: not l.partner_bank_id):
-                partner = line.partner_id.commercial_partner_id
-                partner_bank = order._pichincha_get_partner_bank(partner)
-                if partner_bank:
-                    line.partner_bank_id = partner_bank.id
+        for order in self:
+            if order.payment_method_id.code == "ec_pichincha_tab":
+                for line in order.payment_line_ids.filtered(lambda l: not l.partner_bank_id):
+                    partner = line.partner_id.commercial_partner_id
+                    partner_bank = order._pichincha_get_partner_bank(partner)
+                    if partner_bank:
+                        line.partner_bank_id = partner_bank.id
+            # Ensure payment communication uses invoice document number.
+            for line in order.payment_line_ids.filtered(
+                lambda l: l.move_line_id and l.move_line_id.move_id.is_invoice()
+            ):
+                move = line.move_line_id.move_id
+                line.communication = (
+                    move.l10n_latam_document_number
+                    or move.name
+                    or move.ref
+                    or move.payment_reference
+                )
         return super().draft2open()
 
     def generate_payment_file(self):
@@ -104,6 +120,8 @@ class AccountPaymentOrder(models.Model):
 
         for payment in self.payment_ids.sorted("id"):
             partner = payment.partner_id.commercial_partner_id
+            line_communications = payment.payment_line_ids.mapped("communication")
+            reference = " - ".join([c for c in line_communications if c])
             partner_bank = self._pichincha_get_partner_bank(
                 partner, fallback_bank=payment.partner_bank_id
             )
@@ -152,7 +170,7 @@ class AccountPaymentOrder(models.Model):
             row = [
                 file_tipo,
                 self._pichincha_sanitize_text(
-                    payment.payment_reference or payment.ref or self.name
+                    reference or payment.payment_reference or payment.ref or self.name
                 ),
                 file_currency,
                 self._pichincha_amount_to_cents(payment.amount),

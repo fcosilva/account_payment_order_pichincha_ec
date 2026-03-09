@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo noupdate="1">
+    <record id="payment_method_pichincha_tab_outbound" model="account.payment.method">
+        <field name="name">Banco Pichincha (TXT TAB)</field>
+        <field name="code">ec_pichincha_tab</field>
+        <field name="payment_type">outbound</field>
+        <field name="bank_account_required" eval="True" />
+        <field name="payment_order_only" eval="True" />
+    </record>
+</odoo>
+

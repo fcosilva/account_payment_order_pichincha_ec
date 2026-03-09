@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="account_payment_mode_form_pichincha" model="ir.ui.view">
+        <field name="name">account.payment.mode.form.pichincha</field>
+        <field name="model">account.payment.mode</field>
+        <field name="inherit_id" ref="account_payment_mode.account_payment_mode_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='note']" position="before">
+                <group string="Banco Pichincha">
+                    <field name="payment_method_code" invisible="1" />
+                    <field
+                        name="pichincha_tipo"
+                        invisible="payment_method_code != 'ec_pichincha_tab'"
+                    />
+                    <field
+                        name="pichincha_cta"
+                        invisible="payment_method_code != 'ec_pichincha_tab'"
+                    />
+                    <field
+                        name="pichincha_currency"
+                        invisible="payment_method_code != 'ec_pichincha_tab'"
+                    />
+                    <field
+                        name="pichincha_default_account_type"
+                        invisible="payment_method_code != 'ec_pichincha_tab'"
+                    />
+                    <field
+                        name="pichincha_include_header"
+                        invisible="payment_method_code != 'ec_pichincha_tab'"
+                    />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

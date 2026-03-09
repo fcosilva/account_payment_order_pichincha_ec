@@ -1,4 +1,4 @@
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 
@@ -189,5 +189,9 @@ class AccountPaymentOrder(models.Model):
             ]
             lines.append("\t".join(row))
 
-        filename = "pichincha_%s.txt" % (self.name or "payment_order")
+        today = fields.Date.context_today(self)
+        filename = "%s_pichincha_%s.txt" % (
+            today.strftime("%Y-%m"),
+            self.name or "payment_order",
+        )
         return ("\n".join(lines).encode("utf-8"), filename)
